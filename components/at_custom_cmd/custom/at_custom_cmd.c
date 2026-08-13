@@ -11,37 +11,27 @@
 #include "esp_event.h"
 #include "esp_wifi.h"
 
-// 存储要控制的 GPIO 号，-1 表示未设置
 static int wifi_led_gpio = -1;
 
-// ==================== Wi-Fi 事件回调函数 ====================
+// Wi-Fi 事件回调
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
-    if (wifi_led_gpio < 0) {
-        return;
-    }
+    if (wifi_led_gpio < 0) return;
 
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         gpio_set_level(wifi_led_gpio, 1);
-        printf("WiFi Connected! GPIO%d HIGH\n", wifi_led_gpio);
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         gpio_set_level(wifi_led_gpio, 0);
-        printf("WiFi Disconnected! GPIO%d LOW\n", wifi_led_gpio);
     }
 }
 
 static void register_wifi_event_listener(void)
 {
-    esp_event_handler_instance_register(WIFI_EVENT,
-                                        ESP_EVENT_ANY_ID,
-                                        wifi_event_handler,
-                                        NULL,
-                                        NULL);
+    // 修改：使用 esp_event_handler_register 替代 esp_event_handler_instance_register
+    esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
 }
-
-// ==================== AT 命令处理函数 ====================
 
 // AT+WIFILED=? 测试命令
 static uint8_t at_test_cmd_wifiled(uint8_t *cmd_name)
@@ -117,4 +107,5 @@ bool esp_at_custom_cmd_register_wifiled(void)
         sizeof(at_custom_cmd) / sizeof(at_custom_cmd[0]));
 }
 
-ESP_AT_CMD_SET_INIT_FN(esp_at_custom_cmd_register_wifiled, 1);
+// 修改：去掉第二个参数，或者尝试 0
+ESP_AT_CMD_SET_INIT_FN(esp_at_custom_cmd_register_wifiled);
