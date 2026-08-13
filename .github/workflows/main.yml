@@ -50,6 +50,7 @@ jobs:
     - name: Compiling
       run: |
         export AT_CUSTOM_COMPONENTS=${{ github.workspace }}/examples/at_custom_cmd
+        echo "AT_CUSTOM_COMPONENTS=$AT_CUSTOM_COMPONENTS"
         python ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(python ./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
         python ./esp-idf/tools/idf_tools.py export --prefer-system
         ./build.py build
