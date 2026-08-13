@@ -46,6 +46,18 @@
 #define AT_USEROTA_URL_LEN_MAX          (8 * 1024)
 // ====== 新增：WiFi LED 控制相关 ======
 static int wifi_led_gpio = -1;
+// ====== 新增：拦截 Wi-Fi 事件，阻止系统消息输出 ======
+static void wifi_event_handler_intercept(void* arg, esp_event_base_t event_base,
+                                          int32_t event_id, void* event_data)
+{
+    // 不执行任何输出操作，直接返回
+    // 这样闭源库中的默认处理器可能仍然会执行，
+    // 但如果我们能阻止其输出，需要进一步处理。
+
+    // 注意：这个方法可能无法完全阻止闭源库的输出，
+    // 因为闭源库可能不通过事件系统输出，而是直接调用 esp_at_port_write_data。
+}
+
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -712,6 +724,13 @@ bool esp_at_user_cmd_regist(void)
 #ifdef CONFIG_AT_USERWKMCU_COMMAND_SUPPORT
     s_wkmcu_evt_group = xEventGroupCreate();
 #endif
+    esp_event_handler_register_with_priority(
+        WIFI_EVENT,
+        ESP_EVENT_ANY_ID,
+        ESP_EVENT_HANDLER_PRIORITY_MIN,
+        wifi_event_handler_intercept,
+        NULL
+    );
     return esp_at_custom_cmd_array_regist(s_at_user_cmd, sizeof(s_at_user_cmd) / sizeof(s_at_user_cmd[0]));
 }
 
