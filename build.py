@@ -185,14 +185,14 @@ def build_project(platform_name, module_name, silence, build_args):
         sys_cmd = 'set'
     else:
         sys_cmd = 'export'
-    
+    print("AT_CUSTOM_COMPONENTS:", os.environ['AT_CUSTOM_COMPONENTS'])
     cmd = '{0} ESP_AT_PROJECT_PLATFORM=PLATFORM_{1}&& \
     {0} ESP_AT_MODULE_NAME={2}&& \
     {0} ESP_AT_PROJECT_PATH={3}&& \
     {0} AT_CUSTOM_COMPONENTS={4}&& \
     {0} SILENCE={5}&& \
     {6} {7} -DIDF_TARGET={8} {9}'.format(sys_cmd, platform_name, module_name, os.getcwd(), os.environ['AT_CUSTOM_COMPONENTS'], silence, sys.executable, tool, idf_target, build_args)
-    
+
     ret = subprocess.call(cmd, shell = True)
     print('idf.py build ret: {}'.format(ret))
     if ret:

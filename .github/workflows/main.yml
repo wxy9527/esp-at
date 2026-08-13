@@ -20,6 +20,7 @@ jobs:
         AT_OTA_TOKEN_WROOM_5V2L: ${{ secrets.AT_OTA_TOKEN_WROOM_5V2L }}
         AT_OTA_TOKEN_ESP8266_1MB: ${{ secrets.AT_OTA_TOKEN_ESP8266_1MB }}
         AT_OTA_TOKEN_WROOM_02_N_1024_1024: ${{ secrets.AT_OTA_TOKEN_WROOM_02_1024_1024 }}
+        AT_CUSTOM_COMPONENTS: ${{ github.workspace }}/examples/at_custom_cmd
       run: |
         cd components/at/private_include
         rm -f at_ota_token.h
