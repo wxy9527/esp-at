@@ -101,11 +101,12 @@ static const esp_at_cmd_struct at_custom_cmd[] = {
      at_setup_cmd_wifiled, at_exe_cmd_wifiled},
 };
 
+
 bool esp_at_custom_cmd_register_wifiled(void)
 {
     return esp_at_custom_cmd_array_regist(at_custom_cmd,
         sizeof(at_custom_cmd) / sizeof(at_custom_cmd[0]));
 }
 
-// 修改：去掉第二个参数，或者尝试 0
-ESP_AT_CMD_SET_INIT_FN(esp_at_custom_cmd_register_wifiled);
+// 修改为 ESP_AT_CMD_SET_FIRST_INIT_FN，并加上优先级参数
+ESP_AT_CMD_SET_FIRST_INIT_FN(esp_at_custom_cmd_register_wifiled, 1);
