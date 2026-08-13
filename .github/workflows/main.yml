@@ -49,6 +49,7 @@ jobs:
         python -m pip install --user -r /home/runner/work/esp-at/esp-at/esp-idf/requirements.txt
     - name: Compiling
       run: |
+        export AT_CUSTOM_COMPONENTS=${{ github.workspace }}/examples/at_custom_cmd
         python ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(python ./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
         python ./esp-idf/tools/idf_tools.py export --prefer-system
         ./build.py build
