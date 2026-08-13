@@ -109,4 +109,4 @@ bool esp_at_custom_cmd_register_wifiled(void)
 }
 
 // 修改为 ESP_AT_CMD_SET_FIRST_INIT_FN，并加上优先级参数
-ESP_AT_CMD_SET_FIRST_INIT_FN(esp_at_custom_cmd_register_wifiled, 0);
+ESP_AT_CMD_SET_INIT_FN(esp_at_custom_cmd_register_wifiled);
