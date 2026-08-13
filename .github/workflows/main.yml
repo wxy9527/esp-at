@@ -20,6 +20,7 @@ jobs:
         AT_OTA_TOKEN_WROOM_5V2L: ${{ secrets.AT_OTA_TOKEN_WROOM_5V2L }}
         AT_OTA_TOKEN_ESP8266_1MB: ${{ secrets.AT_OTA_TOKEN_ESP8266_1MB }}
         AT_OTA_TOKEN_WROOM_02_N_1024_1024: ${{ secrets.AT_OTA_TOKEN_WROOM_02_1024_1024 }}
+        silence_mode: 1
       run: |
         cd components/at/private_include
         rm -f at_ota_token.h
@@ -47,7 +48,7 @@ jobs:
       run: |
         python -m pip install --user -r /home/runner/work/esp-at/esp-at/esp-idf/requirements.txt
     - name: Compiling
-      run: |
+      run: |      
         python ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(python ./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
         python ./esp-idf/tools/idf_tools.py export --prefer-system
         ./build.py build
