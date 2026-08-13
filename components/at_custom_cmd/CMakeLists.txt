@@ -1,7 +1,8 @@
 file(GLOB_RECURSE srcs *.c)
 set(includes "include")
 
-set(require_components at freertos nvs_flash driver esp_event esp_wifi)
+# 将 driver 改为 esp8266
+set(require_components at freertos nvs_flash esp8266 esp_event esp_wifi)
 
 idf_component_register(
     SRCS ${srcs}
