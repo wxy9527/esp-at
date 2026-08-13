@@ -39,11 +39,86 @@
 #include "esp_https_ota.h"
 #include "esp_at_core.h"
 #include "esp_at.h"
-
+#include "esp_event.h"
 #ifdef CONFIG_AT_USER_COMMAND_SUPPORT
 
 #define AT_USERRAM_READ_BUFFER_SIZE     1024
 #define AT_USEROTA_URL_LEN_MAX          (8 * 1024)
+// ====== 新增：WiFi LED 控制相关 ======
+static int wifi_led_gpio = -1;
+
+static void wifi_event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
+{
+    if (wifi_led_gpio < 0) return;
+
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+        gpio_set_level(wifi_led_gpio, 1);
+    }
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        gpio_set_level(wifi_led_gpio, 0);
+    }
+}
+// =====================================
+// 在文件开头添加你的函数（或找合适位置插入）
+static uint8_t at_test_cmd_wifiled(uint8_t *cmd_name)
+{
+    esp_at_port_write_data((uint8_t *)"OK\r\n", 4);
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+static uint8_t at_query_cmd_wifiled(uint8_t *cmd_name)
+{
+    uint8_t buffer[32];
+    snprintf((char *)buffer, sizeof(buffer), "+WIFILED:%d\r\n", wifi_led_gpio);
+    esp_at_port_write_data(buffer, strlen((char *)buffer));
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
+{
+    int32_t pin = 0;
+    if (esp_at_get_para_as_digit(0, &pin) != ESP_AT_PARA_PARSE_RESULT_OK) {
+        return ESP_AT_RESULT_CODE_ERROR;
+    }
+    // 校验 GPIO 号合法性
+    if (pin < 0 || pin > 16 || pin == 1 || pin == 3 ||
+        pin == 6 || pin == 7 || pin == 8 || pin == 9 || pin == 10 || pin == 11) {
+        return ESP_AT_RESULT_CODE_ERROR;
+    }
+
+    wifi_led_gpio = (int)pin;
+
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << wifi_led_gpio),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(wifi_led_gpio, 0);
+
+    static bool registered = false;
+    if (!registered) {
+        // 使用 esp_event_handler_register（ESP8266 版本）
+        esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
+        registered = true;
+    }
+
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+static uint8_t at_exe_cmd_wifiled(uint8_t *cmd_name)
+{
+    if (wifi_led_gpio >= 0) {
+        gpio_set_level(wifi_led_gpio, 1);
+    }
+    uint8_t buffer[32];
+    snprintf((char *)buffer, sizeof(buffer), "GPIO:%d\r\n", wifi_led_gpio);
+    esp_at_port_write_data(buffer, strlen((char *)buffer));
+    return ESP_AT_RESULT_CODE_OK;
+}
 
 typedef enum {
     AT_USERRAM_FREE = 0,
@@ -628,6 +703,8 @@ static const esp_at_cmd_struct s_at_user_cmd[] = {
     {"+USERWKMCUCFG", NULL, NULL, at_setup_cmd_userwkmcucfg, NULL},
     {"+USERMCUSLEEP", NULL, NULL, at_setup_cmd_usermcusleep, NULL},
 #endif
+    // ====== 添加你的命令 ======
+    {"+WIFILED", at_test_cmd_wifiled, at_query_cmd_wifiled, at_setup_cmd_wifiled, at_exe_cmd_wifiled},
 };
 
 bool esp_at_user_cmd_regist(void)
