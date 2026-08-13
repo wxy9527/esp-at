@@ -75,8 +75,7 @@ static void initialise_wifi(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     ESP_ERROR_CHECK( esp_event_loop_init(at_wifi_event_handler, NULL) );
-#pragma GCC diagnostic pop
-    
+#pragma GCC diagnostic pop   
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
     ESP_ERROR_CHECK( esp_wifi_start() );
