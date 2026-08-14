@@ -90,7 +90,7 @@ if(NOT ${current_idf_commit} EQUAL ${esp_at_idf_commit})
 endif()
 
 include(${IDF_PATH}/tools/cmake/project.cmake)
-
+set(EXTRA_COMPONENT_DIRS examples/at_custom_cmd)
 project(esp-at)
 
 add_custom_target(factory_bin ALL DEPENDS customized_bin)
