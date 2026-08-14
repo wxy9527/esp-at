@@ -117,4 +117,4 @@ bool esp_at_custom_cmd_register(void)
         sizeof(at_custom_cmd) / sizeof(at_custom_cmd[0]));
 }
 
-ESP_AT_CMD_SET_INIT_FN(esp_at_custom_cmd_register, 1);
+ESP_AT_CMD_SET_INIT_FN(esp_at_custom_cmd_register);
