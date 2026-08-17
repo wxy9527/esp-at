@@ -111,7 +111,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 // 在文件开头添加你的函数（或找合适位置插入）
 static uint8_t at_test_cmd_wifiled(uint8_t *cmd_name)
 {
-    esp_at_port_write_data((uint8_t *)"OK\r\n", 4);
+    esp_at_port_write_data((uint8_t *)"OK\r\n", 40);
     return ESP_AT_RESULT_CODE_OK;
 }
 
