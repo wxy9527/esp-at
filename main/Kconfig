@@ -296,3 +296,7 @@ config ESP_AT_FW_VERSION
       The maximum length of the string is 128 characters.
       If more than 128 characters, it will be invalid.
 endmenu
+
+config AT_CUSTOM_COMMAND_SUPPORT
+    bool "Enable custom AT command"
+    default y
