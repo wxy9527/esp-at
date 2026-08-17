@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 #include "esp_at.h"
 #include "driver/gpio.h"
 #include "esp_event.h"
