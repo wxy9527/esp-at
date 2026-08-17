@@ -30,6 +30,7 @@
 #include "esp_system.h"
 #include "nvs_flash.h"
 #include "esp_at.h"
+extern bool esp_at_custom_cmd_register(void);
 
 #ifdef CONFIG_AT_WIFI_COMMAND_SUPPORT
 #include "esp_event_loop.h"
