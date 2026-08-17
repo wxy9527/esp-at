@@ -345,5 +345,13 @@ void app_main()
 #ifdef CONFIG_AT_SIGNALING_COMMAND_SUPPORT
     esp_at_custom_cmd_array_regist (at_fact_cmd, sizeof(at_fact_cmd)/sizeof(at_fact_cmd[0]));
 #endif
+
+#ifdef CONFIG_AT_CUSTOM_COMMAND_SUPPORT
+    if (esp_at_custom_cmd_register() == false) {
+        printf("Custom AT command register failed!\n");
+    } else {
+        printf("Custom AT command registered successfully.\n");
+    }
+#endif
     at_custom_init();
 }
