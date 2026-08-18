@@ -45,16 +45,17 @@
 #define AT_USERRAM_READ_BUFFER_SIZE     1024
 #define AT_USEROTA_URL_LEN_MAX          (8 * 1024)
 // ====== 新增：WiFi LED 控制相关 ======
+static uint8_t wifi_connected = 0;
 static int wifi_led_gpio = -1;
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
-    if (wifi_led_gpio < 0) return;
-
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+     if (wifi_led_gpio < 0) return;
+    if (event_id == WIFI_EVENT_STA_CONNECTED) {
+        wifi_connected = 1;
         gpio_set_level(wifi_led_gpio, 1);
-    }
-    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        wifi_connected = 0;
         gpio_set_level(wifi_led_gpio, 0);
     }
 }
@@ -96,7 +97,7 @@ static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
         .intr_type = GPIO_INTR_DISABLE
     };
     gpio_config(&io_conf);
-    gpio_set_level(wifi_led_gpio, 0);
+    gpio_set_level(wifi_led_gpio, wifi_connected);  // 根据当前状态设置
 
     static bool registered = false;
     if (!registered) {
