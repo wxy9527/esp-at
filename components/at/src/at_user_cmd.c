@@ -95,23 +95,19 @@ static SemaphoreHandle_t s_at_user_sync_sema;
 static const char *TAG = "at-user";
 
 // 存储要控制的 GPIO 号，-1 表示未设置
+static uint8_t wifi_connected = 0;
 static int wifi_led_gpio = -1;
-
 // ==================== Wi-Fi 事件回调函数 ====================
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
-    if (wifi_led_gpio < 0) {
-        return;
-    }
-
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+    if (wifi_led_gpio < 0) return;
+    if (event_id == WIFI_EVENT_STA_CONNECTED) {
+        wifi_connected = 1;
         gpio_set_level(wifi_led_gpio, 1);
-        printf("WiFi Connected! GPIO%d HIGH\n", wifi_led_gpio);
-    }
-    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        wifi_connected = 0;
         gpio_set_level(wifi_led_gpio, 0);
-        printf("WiFi Disconnected! GPIO%d LOW\n", wifi_led_gpio);
     }
 }
 
@@ -168,7 +164,7 @@ static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
         .intr_type = GPIO_INTR_DISABLE
     };
     gpio_config(&io_conf);
-    gpio_set_level(wifi_led_gpio, 0);
+    gpio_set_level(wifi_led_gpio, wifi_connected);
 
     static bool registered = false;
     if (!registered) {
