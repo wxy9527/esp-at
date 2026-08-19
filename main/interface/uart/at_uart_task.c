@@ -126,6 +126,19 @@ static int32_t at_port_write_data(uint8_t*data,int32_t len)
     static const char *blocked_strings[] = {
         "WIFI CONNECTED\r\n",
         "WIFI GOT IP\r\n",
+        "WIFI DISCONNECT\r\n",
+        "0,CONNECT\r\n",
+        "1,CONNECT\r\n",
+        "2,CONNECT\r\n",
+        "3,CONNECT\r\n",
+        "4,CONNECT\r\n",
+        "5,CONNECT\r\n",
+        "0,CLOSED\r\n",
+        "1,CLOSED\r\n",
+        "2,CLOSED\r\n",
+        "3,CLOSED\r\n",
+        "4,CLOSED\r\n",
+        "5,CLOSED\r\n",
         // 可以继续添加其他需要屏蔽的消息
     };
     static const int num_blocked = sizeof(blocked_strings) / sizeof(blocked_strings[0]);
