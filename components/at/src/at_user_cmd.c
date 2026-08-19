@@ -40,7 +40,8 @@
 #include "esp_at_core.h"
 #include "esp_at.h"
 #include "esp_event.h"
-#include "esp_netif.h"
+//#include "esp_netif.h"
+#include "tcpip_adapter.h"
 #ifdef CONFIG_AT_USER_COMMAND_SUPPORT
 
 #define AT_USERRAM_READ_BUFFER_SIZE     1024
@@ -83,9 +84,10 @@ static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
     if (esp_at_get_para_as_digit(0, &pin) != ESP_AT_PARA_PARSE_RESULT_OK) {
         return ESP_AT_RESULT_CODE_ERROR;
     }
-    // 校验 GPIO 号合法性
-    if (pin < 0 || pin > 16 || pin == 1 || pin == 3 ||
-        pin == 6 || pin == 7 || pin == 8 || pin == 9 || pin == 10 || pin == 11) {
+    if (pin < 0 || pin > 16) {
+        return ESP_AT_RESULT_CODE_ERROR;
+    }
+    if (pin == 6 || pin == 7 || pin == 8 || pin == 11) {
         return ESP_AT_RESULT_CODE_ERROR;
     }
 
@@ -99,9 +101,8 @@ static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
         .intr_type = GPIO_INTR_DISABLE
     };
     gpio_config(&io_conf);
-    gpio_set_level(wifi_led_gpio, wifi_connected);  // 根据当前状态设置
+    gpio_set_level(wifi_led_gpio, wifi_connected);
 
-   // static bool registered = false;
     if (!event_registered) {
         esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
         event_registered = true;
@@ -124,10 +125,8 @@ static uint8_t at_exe_cmd_wifiled(uint8_t *cmd_name)
 // ==================== 上电自动初始化 ====================
 void wifi_led_auto_init(void)
 {
-    // 默认 GPIO 为 4（与您初始化的值一致）
     wifi_led_gpio = 4;
 
-    // 配置 GPIO4 为输出
     gpio_config_t io_conf = {
         .pin_bit_mask = (1ULL << wifi_led_gpio),
         .mode = GPIO_MODE_OUTPUT,
@@ -137,22 +136,16 @@ void wifi_led_auto_init(void)
     };
     gpio_config(&io_conf);
 
-    // 如果尚未注册 Wi-Fi 事件监听，则注册
     if (!event_registered) {
         esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
         event_registered = true;
     }
 
-    // 主动查询当前 Wi-Fi 状态，设置初始电平
-    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-    if (netif) {
-        esp_netif_ip_info_t ip_info;
-        if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
-            wifi_connected = (ip_info.ip.addr != 0) ? 1 : 0;
-            gpio_set_level(wifi_led_gpio, wifi_connected);
-        } else {
-            gpio_set_level(wifi_led_gpio, 0);
-        }
+    // 使用 tcpip_adapter 查询 IP
+    tcpip_adapter_ip_info_t ip_info;
+    if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info) == ESP_OK) {
+        wifi_connected = (ip_info.ip.addr != 0) ? 1 : 0;
+        gpio_set_level(wifi_led_gpio, wifi_connected);
     } else {
         gpio_set_level(wifi_led_gpio, 0);
     }
