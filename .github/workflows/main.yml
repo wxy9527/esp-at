@@ -50,7 +50,6 @@ jobs:
       run: |
         python ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(python ./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
         python ./esp-idf/tools/idf_tools.py export --prefer-system
-        ./build.py build
         upload_dir=esp8266-wroom02-at
         mkdir -p $upload_dir $upload_dir/bootloader $upload_dir/partition_table $upload_dir/customized_partitions $upload_dir/factory
         cp build/flash_project_args $upload_dir/download.config
