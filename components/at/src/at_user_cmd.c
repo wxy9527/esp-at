@@ -46,7 +46,7 @@
 #define AT_USEROTA_URL_LEN_MAX          (8 * 1024)
 // ====== 新增：WiFi LED 控制相关 ======
 static uint8_t wifi_connected = 0;
-static int wifi_led_gpio = -1;
+static int wifi_led_gpio = 4;
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
