@@ -27,11 +27,7 @@ idf_component_register (
     REQUIRES ${require_components}
     EMBED_TXTFILES ${embed_txt_files})
 
-if (${SILENCE} EQUAL 1)
 set(LIB_NAME _at_core_silence)
-else()
-set(LIB_NAME _at_core)
-endif()
 
 string(SUBSTRING "$ENV{ESP_AT_PROJECT_PLATFORM}" 9 31 PLATFORM_NAME) # remove PLATFORM_
 string(STRIP ${PLATFORM_NAME} PLATFORM_NAME)
