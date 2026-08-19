@@ -48,7 +48,7 @@ jobs:
         python -m pip install --user -r /home/runner/work/esp-at/esp-at/esp-idf/requirements.txt
     - name: Compiling
       env:
-      SILENCE: 1   # 添加这一行
+        SILENCE: 1   # 添加这一行
       run: |
         python ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(python ./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
         python ./esp-idf/tools/idf_tools.py export --prefer-system
