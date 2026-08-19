@@ -123,7 +123,21 @@ static bool at_nvm_uart_config_get (at_nvm_uart_config_struct *uart_config);
 static int32_t at_port_write_data(uint8_t*data,int32_t len)
 {
     uint32_t length = 0;
+    static const char *blocked_strings[] = {
+        "WIFI CONNECTED\r\n",
+        "WIFI GOT IP\r\n",
+        // 可以继续添加其他需要屏蔽的消息
+    };
+    static const int num_blocked = sizeof(blocked_strings) / sizeof(blocked_strings[0]);
 
+    for (int i = 0; i < num_blocked; i++) {
+        const char *blocked = blocked_strings[i];
+        size_t blocked_len = strlen(blocked);
+        // 如果数据长度匹配且内容相同，则直接返回（不发送）
+        if (len == blocked_len && memcmp(data, blocked, blocked_len) == 0) {
+            return;
+        }
+    }
     length = uart_write_bytes(esp_at_uart_port,(char*)data,len);
     return length;
 }
