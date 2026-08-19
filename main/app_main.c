@@ -28,6 +28,7 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
+extern void wifi_led_auto_init(void);
 
 #ifdef CONFIG_AT_WIFI_COMMAND_SUPPORT
 #include "esp_event.h"
@@ -100,6 +101,7 @@ void app_main()
 #pragma GCC diagnostic pop
 #ifdef CONFIG_AT_WIFI_COMMAND_SUPPORT
     initialise_wifi();
+    wifi_led_auto_init(); 
 #endif
     at_interface_init();
     esp_at_board_init();
