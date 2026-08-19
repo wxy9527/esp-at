@@ -189,6 +189,8 @@ Connect an ESP station to a targeted AP.
 
 ::
 
+    WIFI CONNECTED
+    WIFI GOT IP
 
     OK
     [WIFI GOT IPv6 LL]
@@ -218,6 +220,8 @@ Connect an ESP station to a targeted AP with last Wi-Fi configuration.
 
 ::
 
+    WIFI CONNECTED
+    WIFI GOT IP
 
     OK
     [WIFI GOT IPv6 LL]
