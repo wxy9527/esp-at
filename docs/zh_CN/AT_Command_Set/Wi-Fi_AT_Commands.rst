@@ -189,8 +189,8 @@ Wi-Fi AT 命令集
 
 ::
 
- //   WIFI CONNECTED
- //   WIFI GOT IP
+    WIFI CONNECTED
+    WIFI GOT IP
 
     OK
     [WIFI GOT IPv6 LL]
@@ -220,8 +220,8 @@ Wi-Fi AT 命令集
 
 ::
 
- //   WIFI CONNECTED
- //   WIFI GOT IP
+    WIFI CONNECTED
+    WIFI GOT IP
 
     OK
     [WIFI GOT IPv6 LL]
