@@ -95,5 +95,5 @@ void at_set_mcu_state_if_sleep(at_sleep_mode_t mode);
  *
  */
 void esp_at_main_preprocess(void);
-
+void wifi_led_auto_init(void);
 #endif

@@ -39,11 +39,121 @@
 #include "esp_https_ota.h"
 #include "esp_at_core.h"
 #include "esp_at.h"
+#include "esp_event.h"
+#include "esp_wifi.h"
+#include "tcpip_adapter.h"
+
 
 #ifdef CONFIG_AT_USER_COMMAND_SUPPORT
 
 #define AT_USERRAM_READ_BUFFER_SIZE     1024
 #define AT_USEROTA_URL_LEN_MAX          (8 * 1024)
+static uint8_t wifi_connected = 0;
+static int wifi_led_gpio = 4;
+static bool event_registered = false;
+static void wifi_event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
+{
+     if (wifi_led_gpio < 0) return;
+    if (event_id == WIFI_EVENT_STA_CONNECTED) {
+        wifi_connected = 1;
+        gpio_set_level(wifi_led_gpio, 1);
+    } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        wifi_connected = 0;
+        gpio_set_level(wifi_led_gpio, 0);
+    }
+}
+// =====================================
+// 在文件开头添加你的函数（或找合适位置插入）
+static uint8_t at_test_cmd_wifiled(uint8_t *cmd_name)
+{
+    esp_at_port_write_data((uint8_t *)"OK\r\n", 4);
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+static uint8_t at_query_cmd_wifiled(uint8_t *cmd_name)
+{
+    uint8_t buffer[32];
+    snprintf((char *)buffer, sizeof(buffer), "+WIFILED:%d\r\n", wifi_led_gpio);
+    esp_at_port_write_data(buffer, strlen((char *)buffer));
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
+{
+    int32_t pin = 0;
+    if (esp_at_get_para_as_digit(0, &pin) != ESP_AT_PARA_PARSE_RESULT_OK) {
+        return ESP_AT_RESULT_CODE_ERROR;
+    }
+    if (pin < 0 || pin > 16) {
+        return ESP_AT_RESULT_CODE_ERROR;
+    }
+    if (pin == 6 || pin == 7 || pin == 8 || pin == 11) {
+        return ESP_AT_RESULT_CODE_ERROR;
+    }
+
+    wifi_led_gpio = (int)pin;
+
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << wifi_led_gpio),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(wifi_led_gpio, wifi_connected);
+
+    if (!event_registered) {
+        esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
+        event_registered = true;
+    }
+
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+static uint8_t at_exe_cmd_wifiled(uint8_t *cmd_name)
+{
+    if (wifi_led_gpio >= 0) {
+        gpio_set_level(wifi_led_gpio, 1);
+    }
+    uint8_t buffer[32];
+    snprintf((char *)buffer, sizeof(buffer), "GPIO:%d\r\n", wifi_led_gpio);
+    esp_at_port_write_data(buffer, strlen((char *)buffer));
+    return ESP_AT_RESULT_CODE_OK;
+}
+
+// ==================== 上电自动初始化 ====================
+void wifi_led_auto_init(void)
+{
+    wifi_led_gpio = 4;
+
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << wifi_led_gpio),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+
+    if (!event_registered) {
+        esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
+        event_registered = true;
+    }
+
+    // 使用 tcpip_adapter 查询 IP
+    tcpip_adapter_ip_info_t ip_info;
+    if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info) == ESP_OK) {
+        wifi_connected = (ip_info.ip.addr != 0) ? 1 : 0;
+        gpio_set_level(wifi_led_gpio, wifi_connected);
+    } else {
+        gpio_set_level(wifi_led_gpio, 0);
+    }
+}
+
+
+
 
 typedef enum {
     AT_USERRAM_FREE = 0,
@@ -628,6 +738,8 @@ static const esp_at_cmd_struct s_at_user_cmd[] = {
     {"+USERWKMCUCFG", NULL, NULL, at_setup_cmd_userwkmcucfg, NULL},
     {"+USERMCUSLEEP", NULL, NULL, at_setup_cmd_usermcusleep, NULL},
 #endif
+    // ====== 添加你的命令 ======
+    {"+WIFILED", at_test_cmd_wifiled, at_query_cmd_wifiled, at_setup_cmd_wifiled, at_exe_cmd_wifiled},
 };
 
 bool esp_at_user_cmd_regist(void)
