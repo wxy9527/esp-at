@@ -40,6 +40,7 @@
 #include "esp_at_core.h"
 #include "esp_at.h"
 #include "esp_event.h"
+#include "esp_netif.h"
 #ifdef CONFIG_AT_USER_COMMAND_SUPPORT
 
 #define AT_USERRAM_READ_BUFFER_SIZE     1024
@@ -47,6 +48,7 @@
 // ====== 新增：WiFi LED 控制相关 ======
 static uint8_t wifi_connected = 0;
 static int wifi_led_gpio = 4;
+static bool event_registered = false;
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -99,11 +101,10 @@ static uint8_t at_setup_cmd_wifiled(uint8_t para_num)
     gpio_config(&io_conf);
     gpio_set_level(wifi_led_gpio, wifi_connected);  // 根据当前状态设置
 
-    static bool registered = false;
-    if (!registered) {
-        // 使用 esp_event_handler_register（ESP8266 版本）
+   // static bool registered = false;
+    if (!event_registered) {
         esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
-        registered = true;
+        event_registered = true;
     }
 
     return ESP_AT_RESULT_CODE_OK;
@@ -118,6 +119,43 @@ static uint8_t at_exe_cmd_wifiled(uint8_t *cmd_name)
     snprintf((char *)buffer, sizeof(buffer), "GPIO:%d\r\n", wifi_led_gpio);
     esp_at_port_write_data(buffer, strlen((char *)buffer));
     return ESP_AT_RESULT_CODE_OK;
+}
+
+// ==================== 上电自动初始化 ====================
+void wifi_led_auto_init(void)
+{
+    // 默认 GPIO 为 4（与您初始化的值一致）
+    wifi_led_gpio = 4;
+
+    // 配置 GPIO4 为输出
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << wifi_led_gpio),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+
+    // 如果尚未注册 Wi-Fi 事件监听，则注册
+    if (!event_registered) {
+        esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
+        event_registered = true;
+    }
+
+    // 主动查询当前 Wi-Fi 状态，设置初始电平
+    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    if (netif) {
+        esp_netif_ip_info_t ip_info;
+        if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
+            wifi_connected = (ip_info.ip.addr != 0) ? 1 : 0;
+            gpio_set_level(wifi_led_gpio, wifi_connected);
+        } else {
+            gpio_set_level(wifi_led_gpio, 0);
+        }
+    } else {
+        gpio_set_level(wifi_led_gpio, 0);
+    }
 }
 
 typedef enum {
