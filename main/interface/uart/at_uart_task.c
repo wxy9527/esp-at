@@ -66,7 +66,7 @@ static int32_t at_uart_write_data(uint8_t *data, int32_t len)
         size_t blocked_len = strlen(blocked);
         // 如果数据长度匹配且内容相同，则直接返回（不发送）
         if (len == blocked_len && memcmp(data, blocked, blocked_len) == 0) {
-            return;
+            return -1;
         }
     }
     return uart_write_bytes(g_at_cmd_port, (char *)data, len);
