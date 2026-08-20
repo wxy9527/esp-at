@@ -77,6 +77,7 @@ static bool s_mcu_sleep;
 static at_wkmcu_cfg_t s_wkmcu_cfg;
 static EventGroupHandle_t s_wkmcu_evt_group;
 
+
 #define AT_MCU_AWAKE_ON_MCU_SLEEP       BIT(CHECK_MCU_AWAKE_BY_MCU_SLP)
 #define AT_MCU_AWAKE_ON_AT_SLEEP        BIT(CHECK_MCU_AWAKE_BY_AT_SLP)
 #define AT_MCU_AWAKE_ON_TIMEO           BIT(CHECK_MCU_AWAKE_BY_TIMEO)
