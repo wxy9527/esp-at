@@ -29,7 +29,7 @@
 #include "esp_at_internal.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
-#include "tcpip_adapter.h"
+#include "esp_netif.h"
 
 #ifdef CONFIG_AT_USER_COMMAND_SUPPORT
 
@@ -137,11 +137,15 @@ void wifi_led_auto_init(void)
         event_registered = true;
     }
 
-    // 使用 tcpip_adapter 查询 IP
-    tcpip_adapter_ip_info_t ip_info;
-    if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info) == ESP_OK) {
-        wifi_connected = (ip_info.ip.addr != 0) ? 1 : 0;
-        gpio_set_level(wifi_led_gpio, wifi_connected);
+    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    if (netif) {
+        esp_netif_ip_info_t ip_info;
+        if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
+            wifi_connected = (ip_info.ip.addr != 0) ? 1 : 0;
+            gpio_set_level(wifi_led_gpio, wifi_connected);
+        } else {
+            gpio_set_level(wifi_led_gpio, 0);
+        }
     } else {
         gpio_set_level(wifi_led_gpio, 0);
     }
