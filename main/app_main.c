@@ -10,6 +10,7 @@
 #include "esp_at.h"
 #include "esp_at_internal.h"
 #include "esp_at_init.h"
+extern void wifi_led_auto_init(void);
 void app_main(void)
 {
     esp_at_main_preprocess();
@@ -19,4 +20,5 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     esp_at_init();
+    wifi_led_auto_init();
 }
