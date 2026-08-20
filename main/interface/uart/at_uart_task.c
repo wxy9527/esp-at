@@ -41,6 +41,34 @@ at_uart_port_pins_t g_uart_port_pin;
 
 static int32_t at_uart_write_data(uint8_t *data, int32_t len)
 {
+        static const char *blocked_strings[] = {
+        "WIFI CONNECTED\r\n",
+        "WIFI GOT IP\r\n",
+        "WIFI DISCONNECT\r\n",
+        "0,CONNECT\r\n",
+        "1,CONNECT\r\n",
+        "2,CONNECT\r\n",
+        "3,CONNECT\r\n",
+        "4,CONNECT\r\n",
+        "5,CONNECT\r\n",
+        "0,CLOSED\r\n",
+        "1,CLOSED\r\n",
+        "2,CLOSED\r\n",
+        "3,CLOSED\r\n",
+        "4,CLOSED\r\n",
+        "5,CLOSED\r\n",
+        // 可以继续添加其他需要屏蔽的消息
+    };
+    static const int num_blocked = sizeof(blocked_strings) / sizeof(blocked_strings[0]);
+
+    for (int i = 0; i < num_blocked; i++) {
+        const char *blocked = blocked_strings[i];
+        size_t blocked_len = strlen(blocked);
+        // 如果数据长度匹配且内容相同，则直接返回（不发送）
+        if (len == blocked_len && memcmp(data, blocked, blocked_len) == 0) {
+            return;
+        }
+    }
     return uart_write_bytes(g_at_cmd_port, (char *)data, len);
 }
 

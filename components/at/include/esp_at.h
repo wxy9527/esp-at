@@ -275,4 +275,5 @@ esp_at_fs_type_t esp_at_fs_get_type(void);
 
 #ifdef __cplusplus
 }
+void wifi_led_auto_init(void);
 #endif
